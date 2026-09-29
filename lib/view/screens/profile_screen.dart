@@ -80,6 +80,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
+        automaticallyImplyLeading: false,
         title: const Text(
           'Profile',
           style: TextStyle(

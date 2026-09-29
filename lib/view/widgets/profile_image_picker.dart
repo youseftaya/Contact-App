@@ -1,9 +1,9 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
 class ProfileImagePicker extends StatelessWidget {
-  final File? profileImage;
+  final Uint8List? profileImage;
   final VoidCallback onTap;
 
   const ProfileImagePicker({
@@ -24,7 +24,7 @@ class ProfileImagePicker extends StatelessWidget {
                 radius: 65,
                 backgroundColor: Colors.lightBlue,
                 backgroundImage: profileImage != null
-                    ? FileImage(profileImage!)
+                    ? MemoryImage(profileImage!)
                     : null,
                 child: profileImage == null
                     ? const Icon(

@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -29,20 +29,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   final ImagePicker imagePicker = ImagePicker();
 
-  File? profileImage;
+  Uint8List? profileImage;
 
   bool isArabic = false;
 
   Future<void> pickImage() async {
-    final XFile? pickedImage =
-        await imagePicker.pickImage(
+    final XFile? pickedImage = await imagePicker.pickImage(
       source: ImageSource.gallery,
     );
 
     if (pickedImage == null) return;
 
+    final Uint8List imageBytes =
+        await pickedImage.readAsBytes();
+
     setState(() {
-      profileImage = File(pickedImage.path);
+      profileImage = imageBytes;
     });
   }
 
@@ -89,14 +91,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         centerTitle: true,
       ),
-
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
             const SizedBox(height: 20),
 
-            // Profile Image
             ProfileImagePicker(
               profileImage: profileImage,
               onTap: pickImage,
@@ -104,14 +104,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             const SizedBox(height: 35),
 
-            // Name
             ProfileNameField(
               controller: nameController,
             ),
 
             const SizedBox(height: 25),
 
-            // Dark / Light
             ProfileThemeTile(
               isDarkMode: isDarkMode,
               onChanged: widget.onThemeChanged,
@@ -119,7 +117,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             const SizedBox(height: 15),
 
-            // Language
             ProfileLanguageTile(
               isArabic: isArabic,
               onChanged: (value) {
@@ -133,7 +130,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             const SizedBox(height: 35),
 
-            // Continue
             SizedBox(
               width: double.infinity,
               height: 55,

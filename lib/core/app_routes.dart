@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import '../data/model/contact_model.dart';
 import '../view/screens/add_contact_screen.dart';
 import '../view/screens/home_screen.dart';
+import '../view/screens/profile_screen.dart';
 
 class AppRoutes {
+  static const String profile = '/profile';
   static const String home = '/';
   static const String addContact = '/add-contact';
 
@@ -12,7 +14,7 @@ class AppRoutes {
     switch (settings.name) {
       case home:
         return MaterialPageRoute(
-          builder: (_) => HomeScreen(),
+          builder: (_) => const HomeScreen(),
         );
 
       case addContact:
@@ -26,8 +28,13 @@ class AppRoutes {
 
       default:
         return MaterialPageRoute(
-          builder: (_) => HomeScreen(),
+          builder: (_) => const ProfileScreen(
+            isDarkMode: true,
+            onThemeChanged: _emptyThemeCallback,
+          ),
         );
     }
   }
+
+  static void _emptyThemeCallback(bool value) {}
 }

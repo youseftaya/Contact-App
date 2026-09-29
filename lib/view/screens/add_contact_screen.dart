@@ -76,7 +76,6 @@ class _AddContactScreenState extends State<AddContactScreen> {
         await firebaseService.addContact(newContact);
       }
 
-      // Keep the loading screen visible for 1 second
       await Future.delayed(
         const Duration(seconds: 1),
       );
@@ -103,13 +102,21 @@ class _AddContactScreenState extends State<AddContactScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDarkMode =
+        Theme.of(context).brightness == Brightness.dark;
+
+    final Color textColor =
+        isDarkMode ? Colors.white : Colors.black;
+
+    final Color backgroundColor =
+        isDarkMode ? Colors.black : const Color(0xFFF5F5F5);
+
     return Stack(
       children: [
         Scaffold(
-          backgroundColor: Colors.black,
+          backgroundColor: backgroundColor,
+
           appBar: AppBar(
-            backgroundColor: Colors.black,
-            foregroundColor: Colors.white,
             title: Text(
               isEditing ? 'Edit Contact' : 'Add Contact',
               style: const TextStyle(
@@ -118,6 +125,7 @@ class _AddContactScreenState extends State<AddContactScreen> {
             ),
             centerTitle: true,
           ),
+
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: Form(
@@ -126,9 +134,11 @@ class _AddContactScreenState extends State<AddContactScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isEditing ? 'Edit Contact' : 'Add New Contact',
-                    style: const TextStyle(
-                      color: Colors.white,
+                    isEditing
+                        ? 'Edit Contact'
+                        : 'Add New Contact',
+                    style: TextStyle(
+                      color: textColor,
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
@@ -142,7 +152,8 @@ class _AddContactScreenState extends State<AddContactScreen> {
                     hintText: 'Enter your name',
                     icon: Icons.person_outline,
                     validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
+                      if (value == null ||
+                          value.trim().isEmpty) {
                         return 'Please enter a name';
                       }
 
@@ -159,7 +170,8 @@ class _AddContactScreenState extends State<AddContactScreen> {
                     icon: Icons.phone_outlined,
                     keyboardType: TextInputType.phone,
                     validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
+                      if (value == null ||
+                          value.trim().isEmpty) {
                         return 'Please enter a phone number';
                       }
 
@@ -170,7 +182,9 @@ class _AddContactScreenState extends State<AddContactScreen> {
                   const SizedBox(height: 30),
 
                   SaveContactButton(
-                    onPressed: isLoading ? null : saveContact,
+                    onPressed: isLoading
+                        ? null
+                        : saveContact,
                     text: isEditing
                         ? 'Update Contact'
                         : 'Save Contact',
@@ -181,7 +195,7 @@ class _AddContactScreenState extends State<AddContactScreen> {
           ),
         ),
 
-        // Loading Card
+        // Loading
         if (isLoading)
           Positioned.fill(
             child: Container(

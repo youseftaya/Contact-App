@@ -4,6 +4,9 @@ import '../../core/app_routes.dart';
 import '../../data/model/contact_model.dart';
 import '../../data/services/firebase_service.dart';
 import '../widgets/contact_card.dart';
+import '../widgets/contact_empty_state.dart';
+import '../widgets/contact_search_bar.dart';
+import '../widgets/no_search_results.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -34,31 +37,21 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: Colors.white,
           title: const Text(
             'Delete Contact?',
             style: TextStyle(
-              color: Colors.black,
               fontWeight: FontWeight.bold,
             ),
           ),
           content: Text(
             'Are you sure you want to delete ${contact.name}?',
-            style: const TextStyle(
-              color: Colors.black,
-            ),
           ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(context, false);
               },
-              child: const Text(
-                'Cancel',
-                style: TextStyle(
-                  color: Colors.black,
-                ),
-              ),
+              child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () {
@@ -141,11 +134,28 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDarkMode =
+        Theme.of(context).brightness == Brightness.dark;
+
+    final Color textColor =
+        isDarkMode ? Colors.white : Colors.black;
+
+    final Color secondaryTextColor =
+        isDarkMode ? Colors.grey : Colors.grey.shade700;
+
     return Scaffold(
-      backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pushReplacementNamed(
+              context,
+              AppRoutes.profile,
+            );
+          },
+          icon: const Icon(
+            Icons.arrow_back,
+          ),
+        ),
         title: const Text(
           'Contacts',
           style: TextStyle(
@@ -154,6 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         centerTitle: true,
       ),
+
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.lightBlue,
         onPressed: () {
@@ -167,10 +178,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
+
       body: StreamBuilder<List<ContactModel>>(
         stream: firebaseService.getContacts(),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          if (snapshot.connectionState ==
+              ConnectionState.waiting) {
             return const Center(
               child: CircularProgressIndicator(
                 color: Colors.lightBlue,
@@ -182,8 +195,8 @@ class _HomeScreenState extends State<HomeScreen> {
             return Center(
               child: Text(
                 'Error: ${snapshot.error}',
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: textColor,
                 ),
               ),
             );
@@ -192,78 +205,47 @@ class _HomeScreenState extends State<HomeScreen> {
           final contacts = snapshot.data ?? [];
 
           if (contacts.isEmpty) {
-            return _buildEmptyState();
+            return ContactEmptyState(
+              textColor: textColor,
+              secondaryTextColor: secondaryTextColor,
+            );
           }
 
-          final filteredContacts = filterContacts(contacts);
+          final filteredContacts =
+              filterContacts(contacts);
 
           return Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  16,
-                  16,
-                  16,
-                  8,
-                ),
-                child: TextField(
-                  controller: searchController,
-                  onChanged: (value) {
-                    setState(() {
-                      searchQuery = value;
-                    });
-                  },
-                  style: const TextStyle(
-                    color: Colors.black,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: 'Search contacts...',
-                    hintStyle: TextStyle(
-                      color: Colors.grey.shade600,
-                    ),
-                    prefixIcon: const Icon(
-                      Icons.search,
-                      color: Colors.black,
-                    ),
-                    suffixIcon: searchQuery.isNotEmpty
-                        ? IconButton(
-                            onPressed: () {
-                              searchController.clear();
+              ContactSearchBar(
+                controller: searchController,
+                searchQuery: searchQuery,
+                onChanged: (value) {
+                  setState(() {
+                    searchQuery = value;
+                  });
+                },
+                onClear: () {
+                  searchController.clear();
 
-                              setState(() {
-                                searchQuery = '';
-                              });
-                            },
-                            icon: const Icon(
-                              Icons.clear,
-                              color: Colors.black,
-                            ),
-                          )
-                        : null,
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide: BorderSide.none,
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(
-                        color: Colors.lightBlue,
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                ),
+                  setState(() {
+                    searchQuery = '';
+                  });
+                },
               ),
+
               Expanded(
                 child: filteredContacts.isEmpty
-                    ? _buildNoSearchResults()
+                    ? NoSearchResults(
+                        textColor: textColor,
+                        secondaryTextColor:
+                            secondaryTextColor,
+                      )
                     : ListView.builder(
                         padding: const EdgeInsets.all(16),
                         itemCount: filteredContacts.length,
                         itemBuilder: (context, index) {
-                          final contact = filteredContacts[index];
+                          final contact =
+                              filteredContacts[index];
 
                           return ContactCard(
                             contact: contact,
@@ -286,79 +268,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(30),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Contact icon
-            Icon(
-              Icons.contacts_outlined,
-              size: 80,
-              color: Colors.lightBlue,
-            ),
-
-            SizedBox(height: 25),
-
-            Text(
-              'No Contacts Yet',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            SizedBox(height: 10),
-
-            Text(
-              'Add your first contact to get started',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.grey,
-                fontSize: 16,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNoSearchResults() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.search_off,
-            size: 60,
-            color: Colors.grey,
-          ),
-          SizedBox(height: 15),
-          Text(
-            'No Contacts Found',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Try another name or phone number',
-            style: TextStyle(
-              color: Colors.grey,
-              fontSize: 15,
-            ),
-          ),
-        ],
       ),
     );
   }
